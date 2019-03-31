@@ -67,7 +67,11 @@ public abstract class DataProcessor<T> implements Runnable{
 
         limit = getIntKey(settings.get("-l"), -1); // -lK  if specified, first K lines from the file will be processed. ex: -l20  first 20 lines (debug option)
         trace = getIntKey(settings.get("-t"), 100000); // -tK   option will output processing info on each K row, K should be number. If -t0 is specified, no console tracing
-        parser = new DatDataParser(getIntKey(settings.get("-c"), 30)); // -cK  option to specify coordinates length in each line of '.dat' file. example -c30
+
+        parser = new DatDataParser()
+                .withPrefixCount(getIntKey(settings.get("-c"), -1)) // -c6 means first 6 space-separated numbers are prefix
+                .withPrefixSize(getIntKey(settings.get("-s"), -1)); // -s30 means first 30 characters are prefix
+
     }
 
     private int getIntKey(String value, int def ){

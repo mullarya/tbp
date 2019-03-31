@@ -63,14 +63,18 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
         Map<String, Integer> counts = Maps.newHashMap();
         for(int i = 0; i < row.length(); i+= substrLength ){
             sub = row.substring(i, Math.min(row.length(), i+substrLength));
-            Integer count = counts.get(sub);
-            counts.put(sub, count == null ? 1 : count+1);
+            if(sub.length() == substrLength) {
+                Integer count = counts.get(sub);
+                counts.put(sub, count == null ? 1 : count + 1);
+            }
         }
         return counts.values();
     }
 
     private Double entropy(Collection<Integer> frequency, int rowLen, int substrLength){
-        int n = rowLen/ substrLength + (rowLen % substrLength == 0 ? 0 : 1); // max number of substrings, tail < strLength is a separate substing
+        int n = rowLen/ substrLength;
+        // this is fixed, do not count tail...
+        //+ (rowLen % substrLength == 0 ? 0 : 1); // max number of substrings, tail < strLength is a separate substing
         return entropy(frequency, n);
     }
 
