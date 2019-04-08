@@ -10,7 +10,6 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -164,11 +163,11 @@ public class PrefixProcessorBase<T> extends DataProcessor<PrefixStorage<T>[]>{
     }
 
     @Override
-    public void initArgs(String[] args){
+    public void initArgs(String filePath, String[] args){
         if(args.length > 1 && !args[1].startsWith("-")) {
             borders = Arrays.asList(args[1].split("-")).stream().mapToInt(i -> Integer.parseInt(i)).boxed().collect(Collectors.toList());
         }
-        super.initArgs(args);
+        super.initArgs(filePath, args);
     }
 
     public static void main(String[] args) throws IOException {

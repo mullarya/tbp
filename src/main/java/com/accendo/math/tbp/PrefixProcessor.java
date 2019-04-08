@@ -11,12 +11,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -34,6 +29,7 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
     //minimal subset length
     private int minLen = 3;
     private List<Integer> borders = Lists.newArrayList(3,50,80,101); // default chunks to process
+    private List<Integer> defaultBorders = Lists.newArrayList(3,50,80,101);
 
     private PrintWriter fullOutput;
 
@@ -45,6 +41,7 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
 
     @Override
     public Map<String, Integer>[] processRow(String row, String marker, String fullInput) {
+
         if(fullOutput == null) { // collecting data
             IntStream.range(minLen, entriesBySize.length)
                     .forEach(k -> fillMap(k - minLen, row.substring(0, k)));
@@ -92,8 +89,14 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
     public void run(){
         try {
             List<String> toCollect = Lists.newLinkedList();
+
+            borders = adjustBorders();
+            globalEntropy = Lists.newLinkedList();
             for (int i = 0; i < borders.size() - 1; i++) {
-                toCollect.add(processSubset(borders.get(i), borders.get(i + 1)));
+                String res = processSubset(borders.get(i), borders.get(i + 1));
+                if(res != null){
+                    toCollect.add(res);
+                }
             }
             collectResults(toCollect);
             cleanup(toCollect);
@@ -102,6 +105,24 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
         catch(Exception e){
             e.printStackTrace();
         }
+    }
+
+    private List<Integer> adjustBorders() {
+        if(rowLen < defaultBorders.get(defaultBorders.size() - 1)){
+            List<Integer> newB = new ArrayList<>();
+            for(Integer i: defaultBorders){
+                if(i < rowLen){
+                    newB.add(i);
+                }
+                else{
+                    newB.add(rowLen);
+                    return  newB;
+                }
+            }
+            return newB;
+
+        }
+        return defaultBorders;
     }
 
     private void saveGlobal() throws IOException {
@@ -202,11 +223,11 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
     }
 
     @Override
-    public void initArgs(String[] args){
+    public void initArgs(String filePath, String[] args){
         if(args.length > 1 && !args[1].startsWith("-")) {
             borders = Arrays.asList(args[1].split("-")).stream().mapToInt(i -> Integer.parseInt(i)).boxed().collect(Collectors.toList());
         }
-        super.initArgs(args);
+        super.initArgs(filePath, args);
     }
 
     public static void main(String[] args) throws IOException {

@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
@@ -26,6 +25,8 @@ public abstract class DataProcessor<T> implements Runnable{
     int limit = -1;
 
     Map<String, String> zipLen;
+
+    int rowLen = 10000;
 
     //protected int totalLines = 0;
 
@@ -45,7 +46,7 @@ public abstract class DataProcessor<T> implements Runnable{
             for (String file : list) {
                 filePath = args[0] + file.substring(0, file.length() - 4);
                 System.out.println(getClass().getSimpleName() + " starting " + file);
-                initArgs(args);
+                initArgs(filePath, args);
                 run();
             }
             len = list.length;
@@ -54,14 +55,14 @@ public abstract class DataProcessor<T> implements Runnable{
             String file = f.getPath();
             filePath = file.endsWith(".dat") ? file.substring(0, file.length() - 4) : file;
             System.out.println(getClass().getSimpleName() + " starting " + file);
-            initArgs(args);
+            initArgs(filePath, args);
             run();
         }
         t = System.currentTimeMillis() - t;
         System.out.printf("%s finished processing %d files in %d mls.", getClass().getSimpleName(), len, t);
     }
 
-    protected void initArgs(String[] args){
+    protected void initArgs(String filePath, String[] args){
         Map<String, String> settings = Maps.newHashMap();
         Arrays.stream(args).filter(s -> s.startsWith("-")).forEach(s -> settings.put(s.substring(0, 2), s.substring(2)));
 
@@ -71,6 +72,11 @@ public abstract class DataProcessor<T> implements Runnable{
         parser = new DatDataParser()
                 .withPrefixCount(getIntKey(settings.get("-c"), -1)) // -c6 means first 6 space-separated numbers are prefix
                 .withPrefixSize(getIntKey(settings.get("-s"), -1)); // -s30 means first 30 characters are prefix
+
+        int nameRowLwn = getIntKey(settings.get("-r"), -1);
+            if(nameRowLwn > 0){
+                rowLen = Integer.parseInt(filePath.substring(nameRowLwn));
+            }
 
     }
 
