@@ -19,6 +19,7 @@ import java.util.stream.IntStream;
  * Created by anna.myullyari on 3/10/18.
  */
 public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
+    //Test Git in eclipse
 
     public static final String EXT = ".pfx";
     public static final String genKey = "GK";

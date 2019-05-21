@@ -80,7 +80,10 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
 
     public static Double entropy(Collection<Integer> frequency, int n){
         DoubleAdder sum = new DoubleAdder();
-        frequency.stream().mapToDouble(i -> eS(pI(i, n))).forEach(sum::add);
+        frequency.stream().mapToDouble(
+                //i -> eS(pI(i, n)))
+                i -> eS(pI(i, 1)))
+                .forEach(sum::add);
         double res = sum.doubleValue();
         return res == 0 ? res : -new BigDecimal(res).setScale(4, BigDecimal.ROUND_HALF_EVEN).doubleValue();
     }
