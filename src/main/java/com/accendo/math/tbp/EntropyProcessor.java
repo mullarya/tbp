@@ -20,8 +20,8 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
 
     public static final String EXT = ".ent";
 
-    private List<Pair<String, List<Double>>> all = Lists.newLinkedList();
-    private int divider = 4;
+    protected List<Pair<String, List<Double>>> all = Lists.newLinkedList();
+    protected int divider = 4;
 
     public static String format = "%8.4f";
 
@@ -35,10 +35,25 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
     @Override
     public List<Double> processRow(String row, String marker, String fullRow) {
         ArrayList<Double> res = IntStream.range(1, row.length()/divider +1)
-                        .mapToObj(i -> entropy(counts(row, i), row.length(), i))
+                //Q: to calculate entropy should I use orig length or cycled
+                        .mapToObj(i -> {
+                            String fullR = addTail(row, i);
+                            return entropy(counts(fullR, i), fullR.length()/*row.length()*/, i);
+                        })
                         .collect(Collectors.toCollection(ArrayList::new));
         all.add(Pair.of(marker, res));
         return res;
+    }
+
+    private Collection<Integer> forkCounts(String row, int gap){
+        String sub;
+        Map<String, Integer> counts = Maps.newHashMap();
+        for(int i = 0; i < row.length() - gap; i++){
+            sub = row.charAt(i)+""+row.charAt(i+gap);
+            Integer count = counts.get(sub);
+            counts.put(sub, count == null ? 1 : count + 1);
+        }
+        return counts.values();
     }
 
     @Override
@@ -60,6 +75,7 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
     // calculate frequencies of substrings of a given length
     private Collection<Integer> counts(String row, int substrLength){
         String sub;
+        row = addTail(row, substrLength);
         Map<String, Integer> counts = Maps.newHashMap();
         for(int i = 0; i < row.length(); i+= substrLength ){
             sub = row.substring(i, Math.min(row.length(), i+substrLength));
@@ -71,7 +87,14 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
         return counts.values();
     }
 
-    private Double entropy(Collection<Integer> frequency, int rowLen, int substrLength){
+    static String addTail(String row, int dt) {
+        int mod = row.length() % dt;
+        return mod == 0 ? row : row+row.substring(0, dt-mod);
+    }
+
+
+
+    protected Double entropy(Collection<Integer> frequency, int rowLen, int substrLength){
         int n = rowLen/ substrLength;
         // this is fixed, do not count tail...
         //+ (rowLen % substrLength == 0 ? 0 : 1); // max number of substrings, tail < strLength is a separate substing
