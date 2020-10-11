@@ -1,4 +1,4 @@
-package com.accendo.math.tbp.bitops;
+package com.accendo.math.tbp.entropy;
 
 import com.google.common.collect.Maps;
 import org.apache.commons.lang3.tuple.Pair;

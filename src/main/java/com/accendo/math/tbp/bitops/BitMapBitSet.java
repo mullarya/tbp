@@ -1,8 +1,7 @@
 package com.accendo.math.tbp.bitops;
 
 
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.tuple.Pair;
+import com.accendo.math.tbp.entropy.CharCounter;
 
 import java.math.BigInteger;
 import java.util.BitSet;

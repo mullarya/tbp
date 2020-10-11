@@ -1,7 +1,7 @@
 package com.accendo.math.tbp;
 
 
-import com.accendo.math.tbp.bitops.CharCounter;
+import com.accendo.math.tbp.entropy.CharCounter;
 import com.accendo.math.tbp.bitops.BitMapFactory;
 import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;

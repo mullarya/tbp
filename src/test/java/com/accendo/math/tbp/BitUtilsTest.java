@@ -1,6 +1,6 @@
 package com.accendo.math.tbp;
 
-import com.accendo.math.tbp.bitops.CharCounter;
+import com.accendo.math.tbp.entropy.CharCounter;
 import com.accendo.math.tbp.bitops.BitMapBitSet;
 import com.accendo.math.tbp.bitops.BitMapIntSet;
 import com.accendo.math.tbp.bitops.BitMapLong;

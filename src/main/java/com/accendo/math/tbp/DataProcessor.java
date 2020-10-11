@@ -46,6 +46,10 @@ public abstract class DataProcessor<T> implements Runnable{
         if(args.length < 1){
             throw new RuntimeException("Please specify directory to process .dat files");
         }
+        if(args.length == 1 && (args[0].equals("help") || args[0].equals("-h"))){
+            help();
+            return;
+        }
         File f = new File(args[0]);
         if(!f.exists()){
             throw new RuntimeException(args[0]+" file do not exist");
@@ -55,28 +59,7 @@ public abstract class DataProcessor<T> implements Runnable{
 
         int len = 1;
         if(f.isDirectory()) {
-            String[] list = f.list((dir, name) -> name.endsWith(".dat"));
-            ExecutorService runner = null;
-            CountDownLatch tracer = null;
-            int awaitTime = getIntKey(settings.get("-p"), -1);
-            if(list.length > 0 && awaitTime > 0){
-                runner = Executors.newFixedThreadPool(list.length);
-                tracer = new CountDownLatch(list.length);
-            }
-            for (String file : list) {
-                filePath = args[0] + file.substring(0, file.length() - 4);
-                if(runner != null){
-                    runner.submit(new FileDataRunner(tracer, newInstance(settings), filePath, settings));
-                }
-                else{
-                    initAndRun(filePath, settings);
-                }
-
-            }
-            if(tracer != null){
-                tracer.await(awaitTime, TimeUnit.HOURS);
-            }
-            len = list.length;
+            len = processDir(f, settings);
         }
         else{
             String file = f.getPath();
@@ -114,6 +97,20 @@ public abstract class DataProcessor<T> implements Runnable{
 
     }
 
+    public static void help(){
+        printFlag("-l", "-lK if specified, first K lines from the file will be processed. ex: -l20  first 20 lines (debug option)");
+        printFlag("-t","-tK option will output processing info on each K row, K should be number. If -t0 is specified, no console tracing. Default 100000");
+        printFlag("-e","-e<Str> option to specify entropy algorithm to run. Options: zzz - zip,  dfl - String.deflate, kmg - Kolmogorov, mkv - Markov, string impl, mkb - Markov, bitset, mki - Markov int impl");
+        printFlag("-m","-mK minimal length (or start) of string");
+        printFlag("-r","-rK max row length to process");
+        printFlag("-c","-cK number of tokens in prefix. -c6 means first 6 space-separated numbers are prefix");
+        printFlag("-s","-sK length of prefix. -s30 means first 30 characters are prefix");
+    }
+
+    private static void printFlag(String flag, String descr){
+        System.out.println(flag+": "+ descr);
+    }
+
     private int getIntKey(String value, int def ){
         return value == null ? def : Integer.parseInt(value);
     }
@@ -147,6 +144,31 @@ public abstract class DataProcessor<T> implements Runnable{
         time = System.currentTimeMillis() - time;
         System.out.println(counter.get()+" rows processed in millisec: "+time);
         return counter.get();
+    }
+
+    private int processDir(File f, Map<String, String> settings) throws IOException, InterruptedException {
+        String[] list = f.list((dir, name) -> name.endsWith(".dat"));
+        ExecutorService runner = null;
+        CountDownLatch tracer = null;
+        int awaitTime = getIntKey(settings.get("-p"), -1);
+        if(list.length > 0 && awaitTime > 0){
+            runner = Executors.newFixedThreadPool(list.length);
+            tracer = new CountDownLatch(list.length);
+        }
+        for (String file : list) {
+            filePath = f.getName()+File.separator + file.substring(0, file.length() - 4);
+            if(runner != null){
+                runner.submit(new FileDataRunner(tracer, newInstance(settings), filePath, settings));
+            }
+            else{
+                initAndRun(filePath, settings);
+            }
+
+        }
+        if(tracer != null){
+            tracer.await(awaitTime, TimeUnit.HOURS);
+        }
+        return list.length;
     }
 
     public void stats(int cnt) {

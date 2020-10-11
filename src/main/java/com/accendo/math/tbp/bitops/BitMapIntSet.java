@@ -1,5 +1,6 @@
 package com.accendo.math.tbp.bitops;
 
+import com.accendo.math.tbp.entropy.CharCounter;
 import com.sun.tools.javac.util.Assert;
 
 import java.util.*;

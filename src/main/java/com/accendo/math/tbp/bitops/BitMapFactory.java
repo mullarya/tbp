@@ -1,5 +1,7 @@
 package com.accendo.math.tbp.bitops;
 
+import com.accendo.math.tbp.entropy.CharCounter;
+
 public class BitMapFactory {
 
     public static CharCounter toMap(String s){

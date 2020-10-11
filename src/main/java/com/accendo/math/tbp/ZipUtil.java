@@ -68,10 +68,10 @@ public class ZipUtil {
             return "";
         }
         String st = cutZero(str);
-        return  Integer.toString(archSize(str))+delim+
-                Integer.toString(deflate(str))+delim+
-                Integer.toString(archSize(st))+delim+
-                Integer.toString(deflate(st));
+        return archSize(str) +delim+
+                deflate(str) +delim+
+                archSize(st) +delim+
+                deflate(st);
     }
 
     public static String allArchHead(String delim){

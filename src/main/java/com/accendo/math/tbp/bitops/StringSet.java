@@ -1,5 +1,6 @@
 package com.accendo.math.tbp.bitops;
 
+import com.accendo.math.tbp.entropy.CharCounter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Set;
@@ -7,10 +8,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class StringSet implements CharCounter{
+public class StringSet implements CharCounter {
 
-    String base;
-    Set<Character> unique;
+    private final String base;
+    private final Set<Character> unique;
 
     public StringSet(String base) {
         this.base = base;
