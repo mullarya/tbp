@@ -6,6 +6,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Created by anna.myullyari on 3/11/18.
@@ -51,6 +52,10 @@ public class DatDataParser implements RowDataParser<String, Pair<String, String>
             pSize = count;
         }
         return this;
+    }
+
+    public String markerHeader(){
+        return pCount != null ? OutputUtils.headSeq("h", 1, pCount, " ") : pSize+"-char-head";
     }
 
 }

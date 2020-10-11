@@ -5,10 +5,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.accendo.math.tbp.PrefixProcessor.genKey;
 
@@ -50,6 +50,22 @@ public class OutputUtils {
     public static<T> void trace(PrefixStorage<T>[] subsets, int top){
         PrintWriter pw = new PrintWriter(System.out);
         Arrays.stream(subsets).filter(Predicates.notNull()).forEach(storage -> storage.printTop(pw, top));
+    }
+
+    public static List<String> headSeq(String head, int start, int end){
+        List<String> res = new ArrayList<>();
+        IntStream.range(start, end).forEach(i->res.add(head+i));
+        res.add(head+end);
+        return res;
+    }
+
+    public static String headSeq(String head, int start, int end, String delim){
+        return headSeq(head, start, end).stream().collect(Collectors.joining(delim));
+    }
+
+
+    public static double scale(double res){
+        return res == 0 ? res : new BigDecimal(res).setScale(4, BigDecimal.ROUND_HALF_EVEN).doubleValue();
     }
 
 

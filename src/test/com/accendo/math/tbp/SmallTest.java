@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class SmallTest{
 
@@ -44,6 +45,15 @@ public class SmallTest{
 
     public static String formatInt(String s){
         return String.format(intformat, Integer.parseInt(s.trim()));
+
+    }
+
+    @Test
+    public void testChainEntropy(){
+        String row = "222222222";
+        List<Double> ent = EntropyProcessor.chainEntropy(row, 2);
+        assertNotNull(ent);
+
 
     }
 }

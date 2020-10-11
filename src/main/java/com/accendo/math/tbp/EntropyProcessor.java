@@ -6,11 +6,11 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.atomic.DoubleAdder;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import static com.accendo.math.tbp.CalcUtil.entropy;
 
 
 /**
@@ -25,6 +25,10 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
 
     public static String format = "%8.4f";
 
+    private int headLength = 0;
+
+    private MarkovEntropyProcessor markov;
+
     /**
      * Calculate E1, E2, ... En for the given row
      * @param row data row where each character is meaningful (no spaces, no delimiters: 12322233)
@@ -34,27 +38,28 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
      */
     @Override
     public List<Double> processRow(String row, String marker, String fullRow) {
-        ArrayList<Double> res = IntStream.range(1, row.length()/divider +1)
-                //Q: to calculate entropy should I use orig length or cycled
-                        .mapToObj(i -> {
-                            String fullR = addTail(row, i);
-                            return entropy(counts(fullR, i), fullR.length()/*row.length()*/, i);
-                        })
-                        .collect(Collectors.toCollection(ArrayList::new));
+        int dt = row.length() % divider == 0 ? 1 : 2;
+        int border = row.length()/divider + dt;
+        headLength = Math.max(headLength, border);
+        List<Double> res = Lists.newLinkedList();
+        if(markov !=  null){
+            res.addAll(markov.processRow(row, marker, fullRow));
+        }
+        res.addAll(chainEntropy(row, border));
         all.add(Pair.of(marker, res));
         return res;
     }
 
-    private Collection<Integer> forkCounts(String row, int gap){
-        String sub;
-        Map<String, Integer> counts = Maps.newHashMap();
-        for(int i = 0; i < row.length() - gap; i++){
-            sub = row.charAt(i)+""+row.charAt(i+gap);
-            Integer count = counts.get(sub);
-            counts.put(sub, count == null ? 1 : count + 1);
-        }
-        return counts.values();
+    public static List<Double> chainEntropy(String row, int border){
+        // if mod == 0, then do not add tail...
+        return  IntStream.range(1, border)
+                .mapToObj(i -> {
+                    String fullR = addTail(row, i);
+                    return entropy(counts(fullR, i), fullR.length()/i);
+                })
+                .collect(Collectors.toList());
     }
+
 
     @Override
     public String getSubsetMarker() {
@@ -62,20 +67,41 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
     }
 
     @Override
+    void output(PrintWriter file, Pair<String, List<Double>> entry) {
+
+    }
+
+    @Override
     public void output(PrintWriter file){
         all.stream().map(p -> formatEntry(p)).forEach(file::println);
     }
 
+    @Override
+    public DataProcessor<List<Double>> newInstance(Map<String, String> settings) {
+        return new EntropyProcessor();
+    }
+
+    @Override
+    protected List<String> getHeader() {
+        List<String> res = OutputUtils.headSeq("ss", 1, headLength);
+        if (additional != null) {
+            res.addAll(ZipUtil.allArchHead());
+        }
+        if (markov != null){
+            res.addAll(markov.getHeader());
+        }
+        return res;
+    }
+
     public  String formatEntry(Pair<String, List<Double>> entry){
-        String res =  entry.getKey()+" "+
-                entry.getValue().stream().map(d -> String.format(format, d)).collect(Collectors.joining(""));
-        return zipLen == null ? res : res+" "+zipLen.get(entry.getKey());
+        String res =  entry.getKey()+delim+
+                entry.getValue().stream().map(d -> String.format(format, OutputUtils.scale(d))).collect(Collectors.joining(delim));
+        return additional == null ? res : res+delim+ additional.get(entry.getKey());
     }
 
     // calculate frequencies of substrings of a given length
-    private Collection<Integer> counts(String row, int substrLength){
+    protected static Collection<Integer> counts(String row, int substrLength){
         String sub;
-        row = addTail(row, substrLength);
         Map<String, Integer> counts = Maps.newHashMap();
         for(int i = 0; i < row.length(); i+= substrLength ){
             sub = row.substring(i, Math.min(row.length(), i+substrLength));
@@ -92,38 +118,11 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
         return mod == 0 ? row : row+row.substring(0, dt-mod);
     }
 
-
-
-    protected Double entropy(Collection<Integer> frequency, int rowLen, int substrLength){
-        int n = rowLen/ substrLength;
-        // this is fixed, do not count tail...
-        //+ (rowLen % substrLength == 0 ? 0 : 1); // max number of substrings, tail < strLength is a separate substing
-        return entropy(frequency, n);
-    }
-
-    public static Double entropy(Collection<Integer> frequency, int n){
-        DoubleAdder sum = new DoubleAdder();
-        frequency.stream().mapToDouble(
-                //i -> eS(pI(i, n)))
-                i -> eS(pI(i, 1)))
-                .forEach(sum::add);
-        double res = sum.doubleValue();
-        return res == 0 ? res : -new BigDecimal(res).setScale(4, BigDecimal.ROUND_HALF_EVEN).doubleValue();
-    }
-
-    private static double pI(int count, int n){
-        return (double)count/n;
-    }
-
-    private static double eS(double p){
-        return p* Math.log(p);
-    }
-
     @Override
     public void run(){
         try {
             all = Lists.newLinkedList();
-            zipLen = new HashMap<>(); //this will trigger compress calculation
+            additional = new HashMap<>(); //this will trigger compress calculation
             traverseFile();
             output();
         }
@@ -131,11 +130,6 @@ public class EntropyProcessor extends DataProcessor<List<Double>>{
             e.printStackTrace();
         }
     }
-
-    public static void main(String[] args) throws IOException {
-        new EntropyProcessor().process(args);
-    }
-
 
 
 }

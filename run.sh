@@ -3,4 +3,4 @@ java -cp tbp-1.0-jar-with-dependencies.jar -Xmx12G com.accendo.math.tbp.EntropyP
 
 java -cp tbp-1.0-jar-with-dependencies.jar -Xmx12G com.accendo.math.tbp.PrefixProcessor binSel/ -s6
 java -cp tbp-1.0-jar-with-dependencies.jar -Xmx12G com.accendo.math.tbp.EntropyProcessor binSel/ -s6
-java -cp tbp-1.0-jar-with-dependencies.jar -Xmx12G com.accendo.math.tbp.ForkEntropyProcessor binSel/ -s6
+java -cp tbp-1.0-jar-with-dependencies.jar -Xmx12G com.accendo.math.tbp.MarkovianEntropyProcessor binSel/ -s6

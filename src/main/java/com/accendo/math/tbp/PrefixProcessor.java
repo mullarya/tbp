@@ -61,6 +61,11 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
         return EXT+"."+minLen+"_"+entriesBySize.length;
     }
 
+    @Override
+    void output(PrintWriter file, Pair<String, Map<String, Integer>[]> entry) {
+
+    }
+
     private void fillMap(int ind, String key) {
         Map<String, Integer> map = entriesBySize[ind];
         if(map == null) {
@@ -85,6 +90,12 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
         fullOutput = pw;
         traverseFile(); // 2nd time just to print subset
     }
+
+    @Override
+    public DataProcessor<Map<String, Integer>[]> newInstance(Map<String, String> settings) {
+        return new PrefixProcessor();
+    }
+
 
     @Override
     public void run(){
@@ -158,7 +169,7 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
             return null;
         }
         Collection<Integer> frequencies = entriesBySize[i].values();
-        Double ent = EntropyProcessor.entropy(frequencies, N);
+        Double ent = CalcUtil.entropy(frequencies, N);
         return Pair.of(i+minLen, ent);
     }
 
@@ -204,7 +215,7 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
                     .map(t -> t.toString())
                     .forEachOrdered(allData::add);
         String res =  allData.stream().collect(Collectors.joining(" "));
-        return zipLen == null ? res : res+' '+zipLen.get(frequencies.getKey());
+        return additional == null ? res : res+' '+ additional.get(frequencies.getKey());
     }
 
     private Pair<String, List<Integer>> collectFrequencies(List<String> join) {
@@ -224,14 +235,14 @@ public class PrefixProcessor extends DataProcessor<Map<String, Integer>[]>{
     }
 
     @Override
-    public void initArgs(String filePath, String[] args){
+    public Map<String, String> getSettings(String[] args){
         if(args.length > 1 && !args[1].startsWith("-")) {
             borders = Arrays.asList(args[1].split("-")).stream().mapToInt(i -> Integer.parseInt(i)).boxed().collect(Collectors.toList());
         }
-        super.initArgs(filePath, args);
+        return super.getSettings(args);
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         new PrefixProcessor().process(args);
     }
 

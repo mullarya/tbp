@@ -20,7 +20,5 @@ public class EntropyProcessorTest {
         assertEquals("123456781234", EntropyProcessor.addTail(s, 6));
 
 
-
-
     }
 }

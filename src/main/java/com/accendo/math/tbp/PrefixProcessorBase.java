@@ -1,6 +1,7 @@
 package com.accendo.math.tbp;
 
 import com.google.common.collect.Lists;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -63,6 +65,11 @@ public class PrefixProcessorBase<T> extends DataProcessor<PrefixStorage<T>[]>{
         return EXT+"."+minLen+"_"+entriesBySize.length;
     }
 
+    @Override
+    void output(PrintWriter file, Pair<String, PrefixStorage<T>[]> entry) {
+
+    }
+
     private void fillMap(int ind, String key, String marker) {
         PrefixStorage<T>  st = entriesBySize[ind];
         if(st == null) {
@@ -85,6 +92,11 @@ public class PrefixProcessorBase<T> extends DataProcessor<PrefixStorage<T>[]>{
     public void output(PrintWriter pw){
         fullOutput = pw;
         traverseFile(); // 2nd time just to print subset
+    }
+
+    @Override
+    public DataProcessor<PrefixStorage<T>[]> newInstance(Map<String, String> settings) {
+        return new PrefixProcessorBase(I);
     }
 
     @Override
@@ -163,14 +175,14 @@ public class PrefixProcessorBase<T> extends DataProcessor<PrefixStorage<T>[]>{
     }
 
     @Override
-    public void initArgs(String filePath, String[] args){
+    public Map<String, String> getSettings(String[] args){
         if(args.length > 1 && !args[1].startsWith("-")) {
             borders = Arrays.asList(args[1].split("-")).stream().mapToInt(i -> Integer.parseInt(i)).boxed().collect(Collectors.toList());
         }
-        super.initArgs(filePath, args);
+        return super.getSettings(args);
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         new PrefixProcessorBase(I).process(args);
 
     }

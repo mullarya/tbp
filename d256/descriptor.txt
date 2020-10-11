@@ -1,0 +1,4 @@
+*.zzz - standard zip algorithm. headers: zzz<L> where L is row[0:L]
+*.dfl - java string deflate (compressing) algorithm. headers: dfl<L> where L is row[0:L]
+*.kmg - Kolmogorov entropy. headers: kmg<I> where I length of substrings to calculate frequencies of those entries
+*.mkv - Markov entropy, -sum(pI *  pIJ * Math.log(pIJ)). headers: mkv<L> where  L is I-J (fork length)
